@@ -1,8 +1,14 @@
-package com.appstairs.movies;
+package com.appstairs.movies.Main.View.activities;
 
 import android.os.Bundle;
 import android.view.View;
 import androidx.fragment.app.FragmentActivity;
+
+import com.appstairs.movies.R;
+import com.appstairs.movies.Main.Model.MovieModel;
+import com.appstairs.movies.Main.View.fragments.MainFragment;
+import com.appstairs.movies.Splash.View.activities.SplashActivity;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,10 +21,10 @@ public class MainActivity extends FragmentActivity implements MainFragment.MainF
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        List<Movie> movies = (ArrayList<Movie>)getIntent().getSerializableExtra(SplashActivity.MOVIES_KEY);
+        List<MovieModel> movieModels = (ArrayList<MovieModel>)getIntent().getSerializableExtra(SplashActivity.MOVIES_KEY);
 
         mainFragment = (MainFragment) getSupportFragmentManager().findFragmentById(R.id.movie_fragment);
-        mainFragment.setViews(movies);
+        mainFragment.setViews(movieModels);
     }
 
     @Override
@@ -34,8 +40,8 @@ public class MainActivity extends FragmentActivity implements MainFragment.MainF
     }
 
     @Override
-    public void onFragmentComplete(Movie movie) {
-        mainFragment.updateViews(movie);
+    public void onFragmentComplete(MovieModel movieModel) {
+        mainFragment.updateViews(movieModel);
     }
 
     @Override

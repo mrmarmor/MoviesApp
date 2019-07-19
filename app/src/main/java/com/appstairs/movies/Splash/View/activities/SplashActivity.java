@@ -1,9 +1,7 @@
-package com.appstairs.movies;
+package com.appstairs.movies.Splash.View.activities;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.database.Cursor;
-import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.os.Handler;
@@ -12,21 +10,17 @@ import android.view.WindowManager;
 
 import androidx.annotation.Nullable;
 
-import com.appstairs.movieModels.R;
+import com.appstairs.movies.R;
 import com.appstairs.movies.Main.Controller.MainController;
 import com.appstairs.movies.Main.Model.MovieModel;
 import com.appstairs.movies.Main.View.activities.MainActivity;
+import com.appstairs.movies.Splash.Controller.SplashSqlController;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.appstairs.movies.Main.Model.iMovie.GENRE;
-import static com.appstairs.movies.Main.Model.iMovie.IMAGE;
 import static com.appstairs.movies.Main.Model.iMovie.MOVIES_DB;
-import static com.appstairs.movies.Main.Model.iMovie.RATING;
-import static com.appstairs.movies.Main.Model.iMovie.RELEASE_YEAR;
 import static com.appstairs.movies.Main.Model.iMovie.TABLE_NAME;
-import static com.appstairs.movies.Main.Model.iMovie.TITLE;
 
 public class SplashActivity extends Activity implements MainController.DataListener {
 
@@ -34,7 +28,7 @@ public class SplashActivity extends Activity implements MainController.DataListe
     private final String TAG = SplashActivity.class.getSimpleName();
     private final long MIN_SPLASH_DELAY = 2000;
 
-    private MainController mainController = MainController.getInstance();
+    private SplashSqlController splashSqlController = SplashSqlController.getInstance();
     private SQLiteDatabase moviesDB;
 
     @Override
@@ -45,40 +39,14 @@ public class SplashActivity extends Activity implements MainController.DataListe
 
         moviesDB = openOrCreateDatabase(MOVIES_DB, MODE_PRIVATE, null);
 
-        if (isDbExists(moviesDB, TABLE_NAME)) {
-            List<MovieModel> movies = parseSqlLite(new ArrayList<MovieModel>());
+        if (splashSqlController.isDbExists(moviesDB, TABLE_NAME)) {
+            List<MovieModel> movies = splashSqlController.parseSqlLite(new ArrayList<MovieModel>());
             continueFlow(movies);
 
         } else {
-            mainController.setUrl("https://api.androidhive.info/json/movies.json");
-            mainController.retrieveData(this);
+            splashSqlController.setUrl(getString(R.string.movies_url));
+            splashSqlController.retrieveData(this);
         }
-    }
-
-    private boolean isDbExists(SQLiteDatabase db, String table) {
-        try {
-            db.rawQuery("SELECT * FROM " + table, null);
-            return true;
-        } catch (SQLException e) {
-            return false;
-        }
-    }
-
-    private List<MovieModel> parseSqlLite(List<MovieModel> movies) {
-        Cursor c = moviesDB.rawQuery("SELECT * FROM " + TABLE_NAME, null);
-        c.moveToFirst();
-
-        do {
-            String title = c.getString(c.getColumnIndex(TITLE));
-            String image = c.getString(c.getColumnIndex(IMAGE));
-            int rating = c.getInt(c.getColumnIndex(RATING));
-            int releaseYear = c.getInt(c.getColumnIndex(RELEASE_YEAR));
-            String[] genre = c.getString(c.getColumnIndex(GENRE)).split(", ");
-
-            movies.add(new MovieModel(title, image, rating, releaseYear, genre));
-        } while (c.moveToNext());
-
-        return movies;
     }
 
     private void continueFlow(List<MovieModel> movies) {

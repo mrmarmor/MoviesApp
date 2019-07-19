@@ -1,13 +1,13 @@
-package com.appstairs.movies;
+package com.appstairs.movies.Main.Model;
 
 import java.io.Serializable;
 
-public class Movie implements Serializable {
+public class MovieModel implements Serializable {
     private String title, image;
     private int rating, releaseYear;
     private String[] genre;
 
-    public Movie(String title, String image, int rating, int releaseYear, String[] genre) {
+    public MovieModel(String title, String image, int rating, int releaseYear, String[] genre) {
         this.title = title;
         this.image = image;
         this.rating = rating;

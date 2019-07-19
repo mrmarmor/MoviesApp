@@ -1,4 +1,4 @@
-package com.appstairs.movies;
+package com.appstairs.movies.Main.View.fragments;
 
 import android.Manifest;
 import android.app.Activity;
@@ -22,6 +22,10 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.appstairs.movies.R;
+import com.appstairs.movies.Main.Controller.MainController;
+import com.appstairs.movies.Main.Model.MovieModel;
+import com.appstairs.movies.Main.Controller.MoviesAdapter;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.vision.CameraSource;
@@ -32,20 +36,16 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.gson.Gson;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import static android.content.Context.MODE_PRIVATE;
-import static com.appstairs.movies.SplashActivity.MOVIES_DB;
+import static com.appstairs.movies.Main.Model.iMovie.MOVIES_DB;
 
 public class MainFragment extends Fragment implements SurfaceHolder.Callback {
     private static final String TAG = MainFragment.class.getSimpleName();
-    public static final int CAMERA_REQUEST_CODE = 1001;
+    private static final int CAMERA_REQUEST_CODE = 1001;
 
     private Activity act;
     private View v;
@@ -53,7 +53,7 @@ public class MainFragment extends Fragment implements SurfaceHolder.Callback {
     private RecyclerView recyclerView;
     private RecyclerView.Adapter mAdapter;
     private RecyclerView.LayoutManager layoutManager;
-    private List<Movie> movies;
+    private List<MovieModel> movieModels;
     private CameraSource cameraSource;
     private Camera camera;
     private MainFragmentListener mListener;
@@ -68,8 +68,8 @@ public class MainFragment extends Fragment implements SurfaceHolder.Callback {
         return v;
     }
 
-    public void setViews(List<Movie> movies) {
-        this.movies = movies;
+    public void setViews(List<MovieModel> movieModels) {
+        this.movieModels = movieModels;
 
         qrSurfaceView = v.findViewById(R.id.scanQr_surfaceView);
 
@@ -79,7 +79,7 @@ public class MainFragment extends Fragment implements SurfaceHolder.Callback {
         layoutManager = new LinearLayoutManager(act);
         recyclerView.setLayoutManager(layoutManager);
 
-        mAdapter = new MoviesAdapter(act, movies);
+        mAdapter = new MoviesAdapter(act, movieModels);
         recyclerView.setAdapter(mAdapter);
 
         final FloatingActionButton fab = v.findViewById(R.id.fabAddMovie);
@@ -95,23 +95,23 @@ public class MainFragment extends Fragment implements SurfaceHolder.Callback {
         });
     }
 
-    public void updateViews(Movie movie) {
+    public void updateViews(MovieModel movieModel) {
         //check if already exists
-        for (Movie movie1 : movies) {
-            if (new Gson().toJson(movie1).equals(new Gson().toJson(movie))) {
-                Snackbar.make(v.getRootView(), "Current movie already exist in the Database", Snackbar.LENGTH_LONG).show();
+        for (MovieModel movieModel1 : movieModels) {
+            if (new Gson().toJson(movieModel1).equals(new Gson().toJson(movieModel))) {
+                Snackbar.make(v.getRootView(), getString(R.string.error_alreadyExists), Snackbar.LENGTH_LONG).show();
                 return;
             }
         }
 
-        List<Movie> newMovie = new ArrayList<>(1);
-        newMovie.add(movie);
+        List<MovieModel> newMovieModel = new ArrayList<>(1);
+        newMovieModel.add(movieModel);
         SQLiteDatabase moviesDB = act.openOrCreateDatabase(MOVIES_DB, MODE_PRIVATE, null);
-        DataController.getInstance().saveOnSqlLite(moviesDB, newMovie, false);
+        MainController.getInstance().saveOnSqlLite(moviesDB, newMovieModel, false);
 
-        movies.add(movie);
+        movieModels.add(movieModel);
         mAdapter.notifyDataSetChanged();
-        Snackbar.make(v.getRootView(), movie.getTitle() + " added.", Snackbar.LENGTH_LONG).show();
+        Snackbar.make(v.getRootView(), movieModel.getTitle() + " added.", Snackbar.LENGTH_LONG).show();
     }
 
     private void getCameraPermission() {
@@ -139,7 +139,7 @@ public class MainFragment extends Fragment implements SurfaceHolder.Callback {
         if (activity.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA)) {
             return true;
         } else {
-            Toast.makeText(activity, "No camera found on this device.", Toast.LENGTH_LONG).show();
+            Toast.makeText(activity, getString(R.string.error_noCamera), Toast.LENGTH_LONG).show();
             return false;
         }
     }
@@ -164,7 +164,7 @@ public class MainFragment extends Fragment implements SurfaceHolder.Callback {
             try {
                 cameraSource.start();
             } catch (IOException e) {
-                Toast.makeText(act, "Unable to start camera source." + e, Toast.LENGTH_LONG).show();
+                Toast.makeText(act, getString(R.string.error_startCamera) + e, Toast.LENGTH_LONG).show();
                 cameraSource.release();
                 cameraSource = null;
             }
@@ -189,7 +189,7 @@ public class MainFragment extends Fragment implements SurfaceHolder.Callback {
         barcodeModule(detector);
     }
 
-    private void barcodeModule(@NonNull BarcodeDetector detector){
+    private void barcodeModule(@NonNull BarcodeDetector detector) {
         detector.setProcessor(new Detector.Processor<Barcode>() {
             @Override public void release() { }
             @Override
@@ -200,37 +200,17 @@ public class MainFragment extends Fragment implements SurfaceHolder.Callback {
                     Barcode barcode = qrCodes.valueAt(0);
                     if (barcode != null && barcode.format == Barcode.QR_CODE) {
                         Log.d(TAG, "receiveDetections: "+barcode.displayValue);
-                        parseValue(barcode.displayValue);
+                        MovieModel movieModel = MainController.getInstance().parseValue(barcode.displayValue);
+                        mListener.onFragmentComplete(movieModel);
                     } else {
                         act.runOnUiThread(new Runnable() { public void run() {
-                            Toast.makeText(act, "Unknown product QrCode: "
+                            Toast.makeText(act, getString(R.string.error_unknownQr)
                                     + qrCodes.valueAt(0).displayValue, Toast.LENGTH_LONG).show();
                         }});
                     }
                 }
             }
         });
-    }
-
-    private void parseValue(String value) {
-        try {
-            JSONObject jsonObject = new JSONObject(value);
-            String title = jsonObject.getString("title");
-            String image = jsonObject.getString("image");
-            int rating = jsonObject.getInt("rating");
-            int releaseYear = jsonObject.getInt("releaseYear");
-
-            String[] genre = new String[3];
-            JSONArray genreArr = jsonObject.getJSONArray("genre");
-            for (int j = 0; j < genreArr.length(); j++)
-                genre[j] = genreArr.getString(j);
-
-            Movie movie = new Movie(title, image, rating, releaseYear, genre);
-            mListener.onFragmentComplete(movie);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-
     }
 
     @Override
@@ -278,7 +258,7 @@ public class MainFragment extends Fragment implements SurfaceHolder.Callback {
     }
 
     public interface MainFragmentListener {
-        void onFragmentComplete(Movie movie);
+        void onFragmentComplete(MovieModel movieModel);
         void onSurfaceViewModeChange(boolean isQrScanMode);
     }
 }

@@ -1,6 +1,10 @@
 <resources>
     <string name="app_name">Movies</string>
 
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="movies_url">https://api.androidhive.info/json/movies.json</string>
+
+    <string name="error_alreadyExists">Current movieModel already exist in the Database.</string>
+    <string name="error_noCamera">No camera found on this device.</string>
+    <string name="error_startCamera">Unable to start camera source.</string>
+    <string name="error_unknownQr">Unknown product QrCode: </string>
 </resources>

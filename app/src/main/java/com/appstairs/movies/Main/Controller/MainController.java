@@ -1,4 +1,4 @@
-package com.appstairs.movies;
+package com.appstairs.movies.Main.Controller;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
@@ -9,33 +9,37 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.Volley;
+import com.appstairs.movies.Main.Model.MovieModel;
+
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import static com.appstairs.movies.SplashActivity.GENRE;
-import static com.appstairs.movies.SplashActivity.IMAGE;
-import static com.appstairs.movies.SplashActivity.RATING;
-import static com.appstairs.movies.SplashActivity.RELEASE_YEAR;
-import static com.appstairs.movies.SplashActivity.TABLE_NAME;
-import static com.appstairs.movies.SplashActivity.TITLE;
+import static com.appstairs.movies.Main.Model.iMovie.IMAGE;
+import static com.appstairs.movies.Main.Model.iMovie.RATING;
+import static com.appstairs.movies.Main.Model.iMovie.RELEASE_YEAR;
+import static com.appstairs.movies.Main.Model.iMovie.TABLE_NAME;
+import static com.appstairs.movies.Main.Model.iMovie.GENRE;
+import static com.appstairs.movies.Main.Model.iMovie.TITLE;
 
-public class DataController /*TODO This is a singleton class*/{
-    private static final String TAG = DataController.class.getCanonicalName();
-    private static final DataController dataController = new DataController();
+public class MainController /*TODO This is a singleton class*/{
+    private static final String TAG = MainController.class.getCanonicalName();
+    private static final MainController dataController = new MainController();
 
     private String url;
-    private List<Movie> movies = new ArrayList<>();
+    private List<MovieModel> movieModels = new ArrayList<>();
     private DataListener dataListener;
 
-    private DataController() {}
+    protected MainController() { }
 
-    public static DataController getInstance() {
+    public static MainController getInstance() {
         if (dataController == null)
-            return new DataController();
+            return new MainController();
         return dataController;
     }
 
@@ -81,19 +85,19 @@ public class DataController /*TODO This is a singleton class*/{
                 for (int j = 0; j < genreArr.length(); j++)
                     genre[j] = genreArr.getString(j);
 
-                Movie movie = new Movie(title, image, rating, releaseYear, genre);
-                movies.add(movie);
+                MovieModel movie = new MovieModel(title, image, rating, releaseYear, genre);
+                movieModels.add(movie);
 
             } catch (JSONException e) {
                 e.printStackTrace();
             }
         }
 
-        Collections.sort(movies, new ReleaseComparator());
-        dataListener.onFinish(movies);
+        Collections.sort(movieModels, new ReleaseComparator());
+        dataListener.onFinish(movieModels);
     }
 
-    public void saveOnSqlLite(SQLiteDatabase moviesDB, List<Movie> movies, boolean createNewColumns) {
+    public void saveOnSqlLite(SQLiteDatabase moviesDB, List<MovieModel> movies, boolean createNewColumns) {
         if (createNewColumns) {
             moviesDB.execSQL("CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " (tmp VARCHAR);");
             moviesDB.execSQL("ALTER TABLE " + TABLE_NAME + " ADD COLUMN " + TITLE + " VARCHAR");
@@ -103,7 +107,7 @@ public class DataController /*TODO This is a singleton class*/{
             moviesDB.execSQL("ALTER TABLE " + TABLE_NAME + " ADD COLUMN " + GENRE + " VARCHAR");
         }
         /*ContentValues cv = new ContentValues();//TODO we can use contentValues
-        for (Movie movie : movies) {
+        for (MovieModel movie : movieModels) {
             cv.put(TITLE, movie.getTitle());
             cv.put(IMAGE, movie.getImage());
             cv.put(RATING, movie.getRating());
@@ -115,7 +119,7 @@ public class DataController /*TODO This is a singleton class*/{
         }
         moviesDB.insert(TABLE_NAME, null, cv);*/
 
-        for (Movie movie : movies) {
+        for (MovieModel movie : movies) {
             moviesDB.execSQL(
                     "INSERT INTO " + TABLE_NAME + " (" + TITLE + ", " + IMAGE + ", " + RATING + ", " + RELEASE_YEAR + ", " + GENRE + ")" +
                             " VALUES (\"" + movie.getTitle() + "\", \"" + movie.getImage() + "\", " + movie.getRating() + ", "
@@ -125,14 +129,36 @@ public class DataController /*TODO This is a singleton class*/{
         moviesDB.close();
     }
 
-    public class ReleaseComparator implements Comparator<Movie> {//sort movies by release date
+    public MovieModel parseValue(String value) {
+        try {
+            JSONObject jsonObject = new JSONObject(value);
+            String title = jsonObject.getString("title");
+            String image = jsonObject.getString("image");
+            int rating = jsonObject.getInt("rating");
+            int releaseYear = jsonObject.getInt("releaseYear");
+
+            String[] genre = new String[3];
+            JSONArray genreArr = jsonObject.getJSONArray("genre");
+            for (int j = 0; j < genreArr.length(); j++)
+                genre[j] = genreArr.getString(j);
+
+            return new MovieModel(title, image, rating, releaseYear, genre);
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return null;
+        }
+
+    }
+
+    public class ReleaseComparator implements Comparator<MovieModel> {//sort movieModels by release date
         @Override
-        public int compare(Movie o1, Movie o2) {
+        public int compare(MovieModel o1, MovieModel o2) {
             return o2.getReleaseYear() - o1.getReleaseYear();
         }
     }
 
     public interface DataListener {
-        void onFinish(List<Movie> movies);
+        void onFinish(List<MovieModel> movies);
     }
 }

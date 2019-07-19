@@ -1,4 +1,4 @@
-package com.appstairs.movies;
+package com.appstairs.movies.Main.View.fragments;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -9,10 +9,12 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.fragment.app.DialogFragment;
 
+import com.appstairs.movies.R;
+import com.appstairs.movies.Main.Model.MovieModel;
 import com.bumptech.glide.Glide;
 
 public class DetailsDialogFragment extends DialogFragment {
-    private Movie movie;
+    private MovieModel movieModel;
 
     public DetailsDialogFragment() { }
 
@@ -31,11 +33,16 @@ public class DetailsDialogFragment extends DialogFragment {
         TextView releaseYear = v.findViewById(R.id.details_releaseYear);
         TextView genre = v.findViewById(R.id.details_genre);
 
-        title.setText("Movie name: " + movie.getTitle());/*TODO it is preferred using string format*/
-        Glide.with(v).asBitmap().load(movie.getImage()).into(imageView);
-        rating.setText("Movie rating: " + movie.getRating());
-        releaseYear.setText("Movie release year: " + movie.getReleaseYear());
-        genre.setText(String.format("Movie genre: %s\\%s\\%s", movie.getGenre()[0], movie.getGenre()[1], movie.getGenre()[2]));
+        title.setText("MovieModel name: " + movieModel.getTitle());/*TODO it is preferred using string format*/
+        rating.setText("MovieModel rating: " + movieModel.getRating());
+        releaseYear.setText("MovieModel release year: " + movieModel.getReleaseYear());
+        genre.setText(String.format("MovieModel genre: %s\\%s\\%s", movieModel.getGenre()[0], movieModel.getGenre()[1], movieModel.getGenre()[2]));
+
+        Glide.with(v)
+                .asBitmap()
+                .placeholder(R.mipmap.ic_launcher)
+                .load(movieModel.getImage())
+                .into(imageView);
 
         Button okButton = (Button)v.findViewById(R.id.details_ok_btn);
         okButton.setOnClickListener(new View.OnClickListener() {
@@ -45,7 +52,7 @@ public class DetailsDialogFragment extends DialogFragment {
         });
     }
 
-    public void setData(Movie movie) {
-        this.movie = movie;
+    public void setData(MovieModel movieModel) {
+        this.movieModel = movieModel;
     }
 }

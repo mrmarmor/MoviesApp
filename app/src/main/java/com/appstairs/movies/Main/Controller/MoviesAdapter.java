@@ -1,4 +1,4 @@
-package com.appstairs.movies;
+package com.appstairs.movies.Main.Controller;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -10,9 +10,11 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.appstairs.movies.Main.Model.MovieModel;
 import com.appstairs.movies.Main.View.fragments.DetailsDialogFragment;
+import com.appstairs.movies.R;
 
 import java.util.List;
 
+//a recyclerView adapter. used to manage data and send to recyclerView. has its own view and model.
 public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.MyViewHolder> {
     private Context ctx;
     private List<MovieModel> movies;

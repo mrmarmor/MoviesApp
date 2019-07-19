@@ -1,2 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+    <string name="app_name">סרטים</string>
+    <string name="error_alreadyExists">הסרט כבר קיים.</string>
+    <string name="error_noCamera">שגיאה! לא נמצאה מצלמה במכשירך.</string>
+    <string name="error_startCamera">שגיאה! לא מצלחיח לפתוח את המצלמה.</string>
+    <string name="error_unknownQr">שגיאה! סרט לא מוכר.</string>
+</resources>

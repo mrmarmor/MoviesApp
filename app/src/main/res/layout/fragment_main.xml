@@ -4,7 +4,7 @@
     android:id="@+id/movie_fragment_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainFragment">
+    tools:context=".Main.View.fragments.MainFragment">
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_movies"
