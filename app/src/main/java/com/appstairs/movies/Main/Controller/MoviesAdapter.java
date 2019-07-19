@@ -7,11 +7,15 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.appstairs.movies.Main.Model.MovieModel;
+import com.appstairs.movies.Main.View.fragments.DetailsDialogFragment;
+
 import java.util.List;
 
 public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.MyViewHolder> {
     private Context ctx;
-    private List<Movie> movies;
+    private List<MovieModel> movies;
 
     public class MyViewHolder extends RecyclerView.ViewHolder {
         private View view;
@@ -23,7 +27,7 @@ public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.MyViewHold
         }
     }
 
-    public MoviesAdapter(Context context, List<Movie> myMovies) {
+    public MoviesAdapter(Context context, List<MovieModel> myMovies) {
         ctx = context;
         movies = myMovies;
     }

@@ -1,7 +1,6 @@
 package com.appstairs.movies;
 
 import android.app.Activity;
-import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.SQLException;
@@ -13,17 +12,29 @@ import android.view.WindowManager;
 
 import androidx.annotation.Nullable;
 
+import com.appstairs.movieModels.R;
+import com.appstairs.movies.Main.Controller.MainController;
+import com.appstairs.movies.Main.Model.MovieModel;
+import com.appstairs.movies.Main.View.activities.MainActivity;
+
 import java.util.ArrayList;
 import java.util.List;
 
-public class SplashActivity extends Activity implements DataController.DataListener {
+import static com.appstairs.movies.Main.Model.iMovie.GENRE;
+import static com.appstairs.movies.Main.Model.iMovie.IMAGE;
+import static com.appstairs.movies.Main.Model.iMovie.MOVIES_DB;
+import static com.appstairs.movies.Main.Model.iMovie.RATING;
+import static com.appstairs.movies.Main.Model.iMovie.RELEASE_YEAR;
+import static com.appstairs.movies.Main.Model.iMovie.TABLE_NAME;
+import static com.appstairs.movies.Main.Model.iMovie.TITLE;
+
+public class SplashActivity extends Activity implements MainController.DataListener {
 
     public static final String MOVIES_KEY = "movies key";
     private final String TAG = SplashActivity.class.getSimpleName();
-    public static final String MOVIES_DB = "moviesDB", TABLE_NAME = "movies_table", TITLE = "title";
-    public static final String IMAGE = "image", RATING = "rating", RELEASE_YEAR = "release_year", GENRE = "genre";
-    private static final long MIN_SPLASH_DELAY = 2000;
+    private final long MIN_SPLASH_DELAY = 2000;
 
+    private MainController mainController = MainController.getInstance();
     private SQLiteDatabase moviesDB;
 
     @Override
@@ -35,13 +46,12 @@ public class SplashActivity extends Activity implements DataController.DataListe
         moviesDB = openOrCreateDatabase(MOVIES_DB, MODE_PRIVATE, null);
 
         if (isDbExists(moviesDB, TABLE_NAME)) {
-            List<Movie> movies = parseSqlLite(new ArrayList<Movie>());
+            List<MovieModel> movies = parseSqlLite(new ArrayList<MovieModel>());
             continueFlow(movies);
 
         } else {
-            DataController dataController = DataController.getInstance();
-            dataController.setUrl("https://api.androidhive.info/json/movies.json");
-            dataController.retrieveData(this);
+            mainController.setUrl("https://api.androidhive.info/json/movies.json");
+            mainController.retrieveData(this);
         }
     }
 
@@ -54,7 +64,7 @@ public class SplashActivity extends Activity implements DataController.DataListe
         }
     }
 
-    private List<Movie> parseSqlLite(List<Movie> movies) {
+    private List<MovieModel> parseSqlLite(List<MovieModel> movies) {
         Cursor c = moviesDB.rawQuery("SELECT * FROM " + TABLE_NAME, null);
         c.moveToFirst();
 
@@ -65,16 +75,16 @@ public class SplashActivity extends Activity implements DataController.DataListe
             int releaseYear = c.getInt(c.getColumnIndex(RELEASE_YEAR));
             String[] genre = c.getString(c.getColumnIndex(GENRE)).split(", ");
 
-            movies.add(new Movie(title, image, rating, releaseYear, genre));
+            movies.add(new MovieModel(title, image, rating, releaseYear, genre));
         } while (c.moveToNext());
 
         return movies;
     }
 
-    private void continueFlow(List<Movie> movies) {
+    private void continueFlow(List<MovieModel> movies) {
         Log.d(TAG, "continueFlow");
         Intent start = new Intent(SplashActivity.this, MainActivity.class);
-        start.putExtra(MOVIES_KEY, (ArrayList<Movie>)movies);
+        start.putExtra(MOVIES_KEY, (ArrayList<MovieModel>)movies);
 
         start.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(start);
@@ -82,7 +92,7 @@ public class SplashActivity extends Activity implements DataController.DataListe
     }
 
     @Override
-    public void onFinish(final List<Movie> movies) {
+    public void onFinish(final List<MovieModel> movies) {
         new Handler().postDelayed(new Runnable(){
             @Override
             public void run() {
@@ -90,6 +100,6 @@ public class SplashActivity extends Activity implements DataController.DataListe
             }
         }, MIN_SPLASH_DELAY);
 
-        DataController.getInstance().saveOnSqlLite(moviesDB, movies, true);
+        MainController.getInstance().saveOnSqlLite(moviesDB, movies, true);
     }
 }
